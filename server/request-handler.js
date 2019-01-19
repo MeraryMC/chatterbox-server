@@ -7,14 +7,21 @@ var defaultCorsHeaders = {
   'access-control-max-age': 10 // Seconds.
 };
 
+// file location of all posted messages
+var filePath = path.join(__dirname, 'messages.json');
 
-// var clientFiles = [
-// '/client/client/styles/styles.css'
-// ];
-
-messages = {
-  results: [{username: 'Jono', text: 'Do my bidding!', createdAt: 47, objectId: 1}]
+// helper function to write messages to file on server
+var writeMessage = function() {
+  var savedMessage = JSON.stringify(messages);
+  fs.writeFile(filePath, savedMessage, 'utf8', function(err) {
+    if (err) {
+      return;
+    }
+  });
 };
+
+// initializes messages with files from our local drive
+messages = JSON.parse(fs.readFileSync(filePath));
 
 var requestHandler = function(request, response) {
 
@@ -57,6 +64,7 @@ var requestHandler = function(request, response) {
         messages.results.push(data);
         data.objectId = Date.now();
         data.createdAt = Date.now();
+        writeMessage();
         response.end(JSON.stringify(data));
       });
     } else {
