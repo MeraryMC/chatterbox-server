@@ -28,26 +28,22 @@ var defaultCorsHeaders = {
 };
 
 
-var messages = {
-  results: [ {username: 'tyler', text: 'blah'}
-  ]
+messages = {
+  results: [{username: 'Jono', text: 'Do my bidding!', createdAt: 47, objectId: 1}]
 };
 
 var requestHandler = function(request, response) {
 
-  // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
-  // See the note below about CORS headers.
+
   var headers = defaultCorsHeaders;
   headers['Content-Type'] = 'application/json';
-  // The outgoing status.
 
   if (request.method === 'OPTIONS') {
-      response.writeHead(200, headers);
-      //console.log(request);
-      //console.log(response);
-      response.end();
-    }
+    response.writeHead(200, headers);
+    response.end();
+  }
+
   if (request.method === 'GET') {
     if (request.url === '/classes/messages' || request.url === '/classes/messages?order=-createdAt') {
       response.writeHead(200, headers);
@@ -59,20 +55,23 @@ var requestHandler = function(request, response) {
   } else if (request.method === 'POST') {
     if (request.url === '/classes/messages' || request.url === '/classes/messages?order=-createdAt') {
       response.writeHead(201, headers);
-      // var data;
-      // console.log(data);
-    };
-      // var newMessage = request._postData;
-      // //console.log(request);
-      // newMessage.objectId = messages.results.length;
-      // // newMessage.createdAt = Date.now();
-      // messages.results.push(newMessage);
-      // response.end(newMessage);
+      var data;
+      request.on('data', (chunk) => {
+        data = JSON.parse(chunk.toString());
+      }).on('end', () => {
+        messages.results.push(data);
+        data.objectId = Date.now();
+        data.createdAt = Date.now();
+        response.end(JSON.stringify(data));
+      });
     } else {
       response.writeHead(404, headers);
       response.end('Hello, World!');
     }
-
+  } else {
+    response.writeHead(404, headers);
+    response.end('Hello, World!');
+  }
 };
 
 

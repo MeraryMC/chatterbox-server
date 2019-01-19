@@ -9,6 +9,19 @@ describe('server', function() {
     });
   });
 
+  it('should respond to OPTIONS requests for /classes/messages with a 200 status code', function(done) {
+    var requestParams = {method: 'OPTIONS',
+      uri: 'http://127.0.0.1:3000/classes/messages',
+      json: {
+        username: 'Jono',
+        text: 'Do my bidding!'}
+    };
+    request(requestParams, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      done();
+    });
+  });
+
   it('should send back parsable stringified JSON', function(done) {
     request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
       expect(JSON.parse.bind(this, body)).to.not.throw();
@@ -61,6 +74,8 @@ describe('server', function() {
         var messages = JSON.parse(body).results;
         expect(messages[0].username).to.equal('Jono');
         expect(messages[0].text).to.equal('Do my bidding!');
+        expect(messages[0].objectId).to.not.equal(undefined);
+        expect(messages[0].createdAt).to.not.equal(undefined);
         done();
       });
     });
@@ -73,5 +88,13 @@ describe('server', function() {
     });
   });
 
-
+  it('Should 404 when unallowed requests are made', function(done) {
+    var requestParams = {method: 'PATCH',
+      uri: 'http://127.0.0.1:3000/classes/messages'
+    };
+    request(requestParams, function(error, response, body) {
+      expect(response.statusCode).to.equal(404);
+      done();
+    });
+  });
 });

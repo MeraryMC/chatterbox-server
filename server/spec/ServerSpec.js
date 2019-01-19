@@ -15,6 +15,16 @@ describe('Node Server Request Listener Function', function() {
     expect(res._ended).to.equal(true);
   });
 
+  it('Should answer GET requests for /classes/messages?order=-createdAt with a 200 status code', function() {
+    var req = new stubs.request('/classes/messages?order=-createdAt', 'GET');
+    var res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(200);
+    expect(res._ended).to.equal(true);
+  });
+
   it('Should send back parsable stringified JSON', function() {
     var req = new stubs.request('/classes/messages', 'GET');
     var res = new stubs.response();
@@ -91,6 +101,40 @@ describe('Node Server Request Listener Function', function() {
     expect(messages[0].username).to.equal('Jono');
     expect(messages[0].text).to.equal('Do my bidding!');
     expect(res._ended).to.equal(true);
+  });
+
+  it('Should respond with messages in the correct time order', function() {
+    var stubMsg1 = {
+      username: 'Jono',
+      text: 'Do my bidding!',
+    };
+    var stubMsg2 = {
+      username: 'Imogen',
+      text: 'What shall I do the while?',
+    };
+
+    // send first message
+    var req = new stubs.request('/classes/messages', 'POST', stubMsg1);
+    var res = new stubs.response();
+    handler.requestHandler(req, res);
+
+    // send second message
+    req = new stubs.request('/classes/messages', 'POST', stubMsg2);
+    res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(201);
+
+    // get messages and check time stamps are in correct order
+    req = new stubs.request('/classes/messages', 'GET');
+    res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(200);
+    var messages = JSON.parse(res._data).results;
+    expect(messages[0].createdAt < messages[1].createdAt).to.equal(true);
   });
 
   it('Should 404 when asked for a nonexistent file', function() {
