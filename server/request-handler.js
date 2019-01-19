@@ -1,25 +1,5 @@
-/*************************************************************
-
-You should implement your request handler function in this file.
-
-requestHandler is already getting passed to http.createServer()
-in basic-server.js, but it won't work as is.
-
-You'll have to figure out a way to export this function from
-this file and include it in basic-server.js so that it actually works.
-
-*Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
-
-**************************************************************/
-// These headers will allow Cross-Origin Resource Sharing (CORS).
-// This code allows this server to talk to websites that
-// are on different domains, for instance, your chat client.
-//
-// Your chat client is running from a url like file://your/chat/client/index.html,
-// which is considered a different domain.
-//
-// Another way to get around this restriction is to serve you chat
-// client from this domain by setting up static file serving.
+var fs = require('fs');
+var path = require('path');
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -27,6 +7,10 @@ var defaultCorsHeaders = {
   'access-control-max-age': 10 // Seconds.
 };
 
+
+// var clientFiles = [
+// '/client/client/styles/styles.css'
+// ];
 
 messages = {
   results: [{username: 'Jono', text: 'Do my bidding!', createdAt: 47, objectId: 1}]
@@ -48,6 +32,17 @@ var requestHandler = function(request, response) {
     if (request.url === '/classes/messages' || request.url === '/classes/messages?order=-createdAt') {
       response.writeHead(200, headers);
       response.end(JSON.stringify(messages));
+    } else if (request.url.includes('/client')) {
+      response.writeHead(200);
+      pathParts = request.url.split('?');
+
+      var indexPath = path.join(__dirname, '..', ...pathParts[0].split('/'));
+
+      response.end(fs.readFileSync(indexPath));
+    } else if (request.url === '/client/client/styles/styles.css') {
+      response.writeHead(200);
+      var cssPath = path.join(__dirname, '..', 'client', 'client', 'styles', 'styles.css');
+      response.end(fs.readFileSync(cssPath));
     } else {
       response.writeHead(404, headers);
       response.end('Hello, World!');
